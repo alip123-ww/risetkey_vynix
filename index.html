@@ -1,0 +1,158 @@
+<?php
+// Inisialisasi variabel untuk menampung hasil respons
+$resultMessage = "";
+$responseStatus = "";
+$returnedKey = "";
+
+// Mengecek apakah form sudah disubmit oleh user
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['license_key'])) {
+    
+    // Menangkap input key dari user
+    $licenseKey = trim($_POST['license_key']);
+    
+    // API Key kamu aman di dalam PHP
+    $apiKey = "VYNIX-API-VESIN2RRANDEUM01"; 
+
+    // Proses cURL ke API yudhamodz
+    $ch = curl_init("https://yudhamodz.my.id/api/reseller/reset");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, [
+        "api_key" => $apiKey,
+        "key"     => $licenseKey
+    ]);
+    
+    $response = curl_exec($ch);
+    
+    if (curl_errno($ch)) {
+        $resultMessage = "Terjadi kesalahan sistem: " . curl_error($ch);
+        $responseStatus = "error";
+    } else {
+        $decoded = json_decode($response, true);
+        
+        // Cek apakah respons API statusnya 1 (sukses)
+        if ($decoded !== null && isset($decoded['status']) && $decoded['status'] == 1) {
+            $responseStatus = "success";
+            $resultMessage = "Riset key success!";
+            // Ambil key dari array [data][key] jika ada, jika tidak pakai key yang diinput
+            $returnedKey = isset($decoded['data']['key']) ? $decoded['data']['key'] : $licenseKey;
+        } else {
+            $responseStatus = "error";
+            // Tampilkan pesan error dari API jika gagal (misal key tidak valid)
+            $resultMessage = isset($decoded['message']) ? $decoded['message'] : "Gagal mereset key.";
+        }
+    }
+    curl_close($ch);
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Reset License Key</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading:after {
+            content: ' .';
+            animation: dots 1s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            40% { color: white; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            60% { text-shadow: .25em 0 0 white, .5em 0 0 rgba(0,0,0,0); }
+            80%, 100% { text-shadow: .25em 0 0 white, .5em 0 0 white; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 flex items-center justify-center min-h-screen font-sans selection:bg-blue-200 selection:text-blue-900">
+    
+    <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-md border border-white/40 relative overflow-hidden">
+        
+        <!-- Aksen Dekoratif -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="bg-blue-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Reset Lisensi</h2>
+            <p class="text-slate-500 text-sm mt-1">Masukkan key lisensi untuk memulai ulang akses.</p>
+        </div>
+        
+        <!-- Form Input -->
+        <form method="POST" action="" onsubmit="document.getElementById('submitBtn').classList.add('loading'); document.getElementById('btnText').innerText='Memproses';">
+            <div class="mb-6 relative">
+                <label for="license_key" class="block text-sm font-semibold text-slate-700 mb-2">
+                    License Key
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M14.5 1A4.5 4.5 0 0 0 10 5.5V9H3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.16ll1.5-1.5a1.5 1.5 0 0 0 0-2.12l-.5-.5.5-.5a1.5 1.5 0 0 0 0-2.12l-.5-.5.5-.5a1.5 1.5 0 0 0 0-2.12l-1.5-1.5H14.5Zm-1.5 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <!-- Placeholder diganti sesuai request -->
+                    <input type="text" id="license_key" name="license_key" required
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm"
+                        placeholder="Contoh: VYNIX-XXXX-XXXX-XXXX">
+                </div>
+            </div>
+            
+            <button type="submit" id="submitBtn"
+                class="w-full bg-slate-800 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md flex justify-center items-center group">
+                <span id="btnText" class="transition-all">Proses Reset</span>
+            </button>
+        </form>
+
+        <!-- Area Hasil Respons API -->
+        <?php if (!empty($resultMessage)): ?>
+            <div class="mt-6 rounded-xl overflow-hidden border <?php echo $responseStatus === 'error' ? 'border-red-200' : 'border-emerald-200'; ?> shadow-sm animate-[fadeIn_0.5s_ease-out]">
+                <div class="px-4 py-3 flex items-center justify-center <?php echo $responseStatus === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'; ?>">
+                    <?php if ($responseStatus === 'success'): ?>
+                        <!-- Ikon Centang Sukses -->
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <?php else: ?>
+                        <!-- Ikon Silang Error -->
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <?php endif; ?>
+                    <span class="font-bold tracking-wide"><?php echo $resultMessage; ?></span>
+                </div>
+                
+                <?php if ($responseStatus === 'success' && !empty($returnedKey)): ?>
+                <!-- Kotak Terminal Bersih Untuk Key Saja -->
+                <div class="bg-slate-900 text-green-400 p-5 flex flex-col items-center justify-center border-t border-slate-700">
+                    <span class="text-xs text-slate-400 mb-2 uppercase tracking-widest">Key Anda</span>
+                    <code class="text-lg font-mono tracking-wider bg-black/30 px-4 py-2 rounded-lg"><?php echo htmlspecialchars($returnedKey); ?></code>
+                </div>
+                <?php endif; ?>
+            </div>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
+        <?php endif; ?>
+
+        <!-- Footer / Contact Telegram -->
+        <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-center text-sm text-slate-500">
+            <span>Perpanjang key:</span>
+            <a href="https://t.me/Rlynstore" target="_blank" rel="noopener noreferrer" 
+               class="ml-2 flex items-center text-blue-500 hover:text-blue-600 font-semibold transition-colors group">
+                <!-- Logo Telegram SVG -->
+                <svg class="w-5 h-5 mr-1 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
+                @Rlynstore
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>
